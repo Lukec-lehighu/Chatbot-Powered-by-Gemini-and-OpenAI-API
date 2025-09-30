@@ -11,7 +11,7 @@ load_dotenv()
 #define constants
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 DATASET_PATH = "ACM HEALTH Datasets_V1 - CBT.csv"
-COLUMN_READ_COUNT = 1
+COLUMN_READ_COUNT = 20
 
 # Create the model
 generation_config = {
@@ -23,7 +23,7 @@ generation_config = {
 
 gen_ai.configure(api_key=GOOGLE_API_KEY)
 model = gen_ai.GenerativeModel(
-    model_name="gemini-2.5-flash",
+    model_name="gemini-2.0-flash",
     generation_config = generation_config
 )
 
@@ -36,15 +36,20 @@ responses = []
 for index, row in tqdm(df.iterrows()):
     if index >= COLUMN_READ_COUNT:
         break
-    resp_row = {}
 
     prompt = row.iloc[2]
-    resp_row['prompt'] = prompt
-    resp_row['normal'] = model.generate_content(contents=prompt).text
-    resp_row['hispanic-male-sensitivity'] = model.generate_content(contents=prompt + ". Respond with sensitivity to Hispanic culture. The speaker is male").text
-    resp_row['hispanic-female-sensitivity'] = model.generate_content(contents=prompt + ". Respond with sensitivity to Hispanic culture. The speaker is female").text
-    resp_row['asian-male-sensitivity'] = model.generate_content(contents=prompt + ". Respond with sensitivity to Asian culture. The speaker is male").text
-    resp_row['asian-female-sensitivity'] = model.generate_content(contents=prompt + ". Respond with sensitivity to Asian culture. The speaker is female").text
+
+    resp_row = {}
+    try:
+        resp_row['prompt'] = prompt
+        resp_row['normal'] = model.generate_content(contents=prompt).text
+        resp_row['hispanic-male-sensitivity'] = model.generate_content(contents=prompt + ". Respond with sensitivity to Hispanic culture. The speaker is male").text
+        resp_row['hispanic-female-sensitivity'] = model.generate_content(contents=prompt + ". Respond with sensitivity to Hispanic culture. The speaker is female").text
+        resp_row['asian-male-sensitivity'] = model.generate_content(contents=prompt + ". Respond with sensitivity to Asian culture. The speaker is male").text
+        resp_row['asian-female-sensitivity'] = model.generate_content(contents=prompt + ". Respond with sensitivity to Asian culture. The speaker is female").text
+    except Exception as e:
+        print(e)
+        break
 
     responses.append(resp_row)
 
